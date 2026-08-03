@@ -1,0 +1,29 @@
+name: GitHub Streak Keeper Bot
+
+on:
+  schedule:
+    - cron: "5 18 * * *"  # Adjust for your timezone, e.g., ~00:05 IST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+      - name: Random commits
+        run: |
+          COUNT=$(( (RANDOM % 12) + 1 ))
+          echo "Making $COUNT commits today..."
+          for i in $(seq 1 $COUNT); do
+            echo "$(date -u '+%F %T') UTC — heartbeat [$i/$COUNT]" >> keepalive.txt
+            git add keepalive.txt
+            git commit -m "Daily update $(date -u +%F) [$i/$COUNT]"
+          done
+          git push

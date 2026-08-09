@@ -2,7 +2,8 @@ name: GitHub Streak Keeper Bot
 
 on:
   schedule:
-    - cron: "5 18 * * *"  # Adjust for your timezone, e.g., ~00:05 IST
+    - cron: "5 18 * * *"   # ~00:05 IST (primary)
+    - cron: "0 13 * * *"   # ~18:30 IST (backup, in case primary is skipped)
   workflow_dispatch:
 
 permissions:
@@ -19,6 +20,11 @@ jobs:
           git config user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Random commits
         run: |
+          TODAY=$(date -u +%F)
+          if grep -q "$TODAY" keepalive.txt 2>/dev/null; then
+            echo "Already committed today ($TODAY), skipping backup trigger."
+            exit 0
+          fi
           COUNT=$(( (RANDOM % 12) + 1 ))
           echo "Making $COUNT commits today..."
           for i in $(seq 1 $COUNT); do
